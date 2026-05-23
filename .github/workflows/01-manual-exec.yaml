@@ -26,8 +26,9 @@ jobs:
 
       # step 3: install dependencies
       - name: yarn instalation
-        run: npm install -g yarn
-        run: yarn
+        run: |
+          npm install -g yarn
+          yarn
 
       # step 4: playwright browser installation
       - name: Playwright browser installation
@@ -35,5 +36,4 @@ jobs:
 
       # step 5: run tests
       - name: Run tests
-        run: yarn test:e2e
-
+        run: yarn e2e
