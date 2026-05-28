@@ -1,5 +1,6 @@
 stages:
   - test
+  - report
 
 variables:
   CI: 'true'
@@ -12,6 +13,11 @@ unit_tests:
     - npm --version
     - npm ci
     - npm test
+  artifacts:
+    when: always
+    paths:
+      - allure-results/
+      - reports/coverage/
 
 mutation_tests:
   stage: test
@@ -41,5 +47,22 @@ e2e_tests:
       - playwright-report/
       - test-results/
       - results.xml
+      - allure-results/
     reports:
       junit: results.xml
+
+allure_report:
+  stage: report
+  image: node:20
+  dependencies:
+    - unit_tests
+    - e2e_tests
+  script:
+    - npm ci
+    - npx allure generate allure-results --clean -o allure-report
+  artifacts:
+    when: always
+    paths:
+      - allure-report/
+    expose_as: 'Allure Report'
+  when: always
