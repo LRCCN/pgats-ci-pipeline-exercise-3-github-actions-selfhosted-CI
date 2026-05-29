@@ -132,17 +132,12 @@ jobs:
         run: |
           const { execFileSync } = require('child_process');
           const path = require('path');
-          const allureBat = path.resolve('node_modules/allure-commandline/dist/allure/bin/allure.bat');
-          const cleanEnv = {
-            JAVA_HOME: process.env.JAVA_HOME,
-            PATH: `${process.env.JAVA_HOME}\\bin;${process.env.SystemRoot}\\System32;${process.env.SystemRoot}`,
-            SystemRoot: process.env.SystemRoot,
-            TEMP: process.env.TEMP,
-            TMP: process.env.TMP,
-          };
-          execFileSync(allureBat, ['generate', 'allure-results', '--clean', '-o', 'allure-report'], {
+          const fs = require('fs');
+          const allureLib = path.resolve('node_modules/allure-commandline/dist/allure/lib');
+          const jar = fs.readdirSync(allureLib).find(f => f.endsWith('.jar'));
+          const javaExe = path.join(process.env.JAVA_HOME, 'bin', 'java.exe');
+          execFileSync(javaExe, ['-jar', path.join(allureLib, jar), 'generate', 'allure-results', '--clean', '-o', 'allure-report'], {
             stdio: 'inherit',
-            env: cleanEnv,
           });
 
       - name: Upload Allure report
