@@ -1,67 +1,74 @@
-[![Code coverage badge](https://img.shields.io/badge/coverage-100%25-brightgreen)](https://stryker-mutator.io/robo-coasters-example/reports/coverage/lcov-report/index.html)
-[![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fstryker-mutator%2Frobo-coasters-example%2Fmaster)](https://dashboard.stryker-mutator.io/reports/github.com/stryker-mutator/robo-coasters-example/master)
-
-# PGATS - CI
+# PGATS - CI — Exercício 3: GitHub Actions com Self-Hosted Runner
 
 ## Pré-requisitos
 
 1. Instale o [git](https://git-scm.com)
-2. Instale o [nodejs](https://nodejs.org/)
-3. Instale o Yarn - `npm install -g yarn`
-4. Clone este repositório para sua máquina
-5. Instale as dependências
+2. Instale o [Node.js 20+](https://nodejs.org/)
+3. Clone este repositório e instale as dependências
    ```shell
-   cd pgats-ci-pipeline-exercise-1-gitlab-CI
-   yarn
+   cd pgats-ci-pipeline-exercise-3-github-actions-selfhosted-CI
+   npm install
    ```
-6. Execute os testes de unidade
+4. Execute os testes de unidade
    ```shell
-   yarn run test
+   npm test
    ```
-7. Execute os testes de mutação com o Stryker
+5. Execute os testes de mutação com o Stryker
    ```shell
-   yarn run test:mutation
+   npm run test:mutation
    ```
-8. Instale os navegadores do Playwright
-    ```shell
-    yarn playwright install
-    ```
-9. Execute os testes end-to-end com o Playwright
-    ```shell
-    yarn run e2e
-    ```
-10. Execute a aplicação localmente
-    ```shell
-    yarn start
-    ```
+6. Instale os navegadores do Playwright
+   ```shell
+   npx playwright install --with-deps
+   ```
+7. Execute os testes end-to-end com o Playwright
+   ```shell
+   npm run e2e
+   ```
+8. Execute a aplicação localmente
+   ```shell
+   npm start
+   ```
 
 ---
 
 ## Estratégia de CI/CD
 
-O código-fonte deste projeto é hospedado no **GitHub**, porém a execução do pipeline de CI é realizada pelo **GitLab CI/CD** por meio do recurso _CI/CD for external repositories_.
+O pipeline é executado pelo **GitHub Actions** com um **self-hosted runner** registrado na máquina local, eliminando a dependência de infraestrutura gerenciada pelo GitHub.
 
 **Fluxo:**
-1. O desenvolvedor faz push no repositório do GitHub
-2. Um webhook notifica o GitLab
-3. O GitLab sincroniza o mirror do repositório e executa o pipeline definido em `.gitlab-ci.yml`
-4. Os resultados dos jobs ficam disponíveis no GitLab
-
-Essa abordagem permite manter o repositório no GitHub e aproveitar os runners e recursos de pipeline do GitLab.
+1. O desenvolvedor faz push ou abre um Pull Request
+2. O GitHub Actions detecta os jobs com `runs-on: self-hosted`
+3. O runner local recebe e executa os jobs via polling HTTPS
+4. Artefatos e resultados ficam disponíveis na aba **Actions** do repositório
 
 ---
 
-## Pipeline atual (.gitlab-ci.yml)
+## Pipeline atual (.github/workflows/ci.yml)
 
-O pipeline possui o estágio `test` com os seguintes jobs:
+O pipeline possui 4 jobs executados em paralelo (exceto `allure_report`):
 
-1. `unit_tests`
-   - Executa `yarn test`
-2. `mutation_tests`
-   - Executa `yarn test:mutation`
-   - Publica artefatos em `reports/mutation/`
-3. `e2e_tests`
-   - Executa `yarn playwright install` e `yarn e2e`
-   - Publica artefatos em `playwright-report/`, `test-results/` e `results.xml`
+| Job | Comando | Artefatos |
+|---|---|---|
+| `unit_tests` | `npm test` | `allure-results/`, `reports/coverage/` |
+| `mutation_tests` | `npm run test:mutation` | `reports/mutation/` |
+| `e2e_tests` | `npm run e2e` | `playwright-report/`, `test-results/`, `results.xml` |
+| `allure_report` | geração do relatório Allure | `allure-report/` |
 
-Observação: localmente você pode usar `npm test` ou `yarn test`; ambos executam a mesma suíte de testes unitários definida no `package.json`.
+O job `allure_report` depende de `unit_tests` e `e2e_tests` e sempre executa (`if: always()`), consolidando os resultados em um único relatório Allure.
+
+---
+
+## Configurando o Self-Hosted Runner
+
+Consulte o guia completo em [SELF_HOSTED_RUNNER.md](SELF_HOSTED_RUNNER.md).
+
+**Resumo rápido:**
+1. Acesse **Settings → Actions → Runners → New self-hosted runner** no repositório
+2. Siga os comandos gerados pelo GitHub para seu SO
+3. Inicie o runner: `./run.cmd` (Windows) ou `./run.sh` (Linux/macOS)
+
+O runner precisa estar ativo para os jobs serem despachados. Você pode acompanhar as execuções em:
+```
+https://github.com/LRCCN/pgats-ci-pipeline-exercise-3-github-actions-selfhosted-CI/actions
+```
