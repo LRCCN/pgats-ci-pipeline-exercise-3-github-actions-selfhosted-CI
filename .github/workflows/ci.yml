@@ -130,7 +130,8 @@ jobs:
       - name: Generate Allure report
         shell: powershell
         run: |
-          $env:PATH = "$env:JAVA_HOME\bin;$env:SystemRoot\System32;$env:SystemRoot"
+          $nodePath = (Get-Command node).Source | Split-Path
+          $env:PATH = "$env:JAVA_HOME\bin;$nodePath;$env:SystemRoot\System32;$env:SystemRoot"
           node_modules\.bin\allure.cmd generate allure-results --clean -o allure-report
 
       - name: Upload Allure report
