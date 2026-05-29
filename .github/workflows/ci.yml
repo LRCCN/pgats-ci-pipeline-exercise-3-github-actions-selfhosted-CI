@@ -128,7 +128,7 @@ jobs:
         run: npm ci
 
       - name: Generate Allure report
-        run: node node_modules/.bin/allure generate allure-results --clean -o allure-report
+        run: node_modules\.bin\allure.cmd generate allure-results --clean -o allure-report
 
       - name: Upload Allure report
         if: always()
