@@ -133,10 +133,14 @@ jobs:
           const { execFileSync } = require('child_process');
           const path = require('path');
           const fs = require('fs');
-          const allureLib = path.resolve('node_modules/allure-commandline/dist/lib');
-          const jar = fs.readdirSync(allureLib).find(f => f.startsWith('allure-commandline') && f.endsWith('.jar'));
+          const allureHome = path.resolve('node_modules/allure-commandline/dist');
+          const allureLib = path.join(allureHome, 'lib');
+          const classpath = fs.readdirSync(allureLib)
+            .filter(f => f.endsWith('.jar'))
+            .map(f => path.join(allureLib, f))
+            .join(path.delimiter);
           const javaExe = path.join(process.env.JAVA_HOME, 'bin', 'java.exe');
-          execFileSync(javaExe, ['-jar', path.join(allureLib, jar), 'generate', 'allure-results', '--clean', '-o', 'allure-report'], {
+          execFileSync(javaExe, ['-classpath', classpath, 'io.qameta.allure.CommandLine', 'generate', 'allure-results', '--clean', '-o', 'allure-report'], {
             stdio: 'inherit',
           });
 
